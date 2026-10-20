@@ -4,10 +4,15 @@ using UnityEngine.InputSystem.LowLevel;
 
 namespace Minis
 {
+    [System.Obsolete("Use MidiButtonControl instead.")]
+    public class MidiNoteControl : ButtonControl
+    {
+    }
+
     /// <summary>
     /// A note input on a MIDI device.
     /// </summary>
-    public class MidiButtonControl : ButtonControl
+    public class MidiButtonControl : MidiNoteControl
     {
         public int minValue = 0;
         public int maxValue = 127;

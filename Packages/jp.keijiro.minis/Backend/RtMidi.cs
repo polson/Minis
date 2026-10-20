@@ -65,6 +65,7 @@ namespace Minis.Backend
 
         protected override bool ReleaseHandle()
         {
+            RtMidi.rtmidi_close_port(handle);
             RtMidi.rtmidi_in_free(handle);
             return true;
         }
@@ -79,6 +80,7 @@ namespace Minis.Backend
 
         protected override bool ReleaseHandle()
         {
+            RtMidi.rtmidi_close_port(handle);
             RtMidi.rtmidi_out_free(handle);
             return true;
         }
@@ -149,6 +151,11 @@ namespace Minis.Backend
         [DllImport(DllName)]
         public static extern void rtmidi_close_port(
             RtMidiHandle device
+        );
+
+        [DllImport(DllName)]
+        public static extern void rtmidi_close_port(
+            IntPtr device
         );
 
         [DllImport(DllName)]
