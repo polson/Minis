@@ -73,7 +73,6 @@ namespace Minis.Backend
 
             if (_portHandle != null)
             {
-                rtmidi_close_port(_portHandle);
                 _portHandle.Dispose();
                 _portHandle = null;
             }

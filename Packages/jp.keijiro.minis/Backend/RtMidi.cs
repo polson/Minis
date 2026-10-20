@@ -34,7 +34,7 @@ namespace Minis.Backend
     internal unsafe abstract class RtMidiHandle : SafeHandle
     {
         [StructLayout(LayoutKind.Sequential)]
-        private struct RtMidiWrapper
+        internal struct RtMidiWrapper
         {
             public IntPtr ptr;
             public IntPtr data;
@@ -65,6 +65,7 @@ namespace Minis.Backend
 
         protected override bool ReleaseHandle()
         {
+            RtMidi.SafeClosePort(handle);
             RtMidi.rtmidi_in_free(handle);
             return true;
         }
@@ -79,6 +80,7 @@ namespace Minis.Backend
 
         protected override bool ReleaseHandle()
         {
+            RtMidi.SafeClosePort(handle);
             RtMidi.rtmidi_out_free(handle);
             return true;
         }
@@ -150,6 +152,60 @@ namespace Minis.Backend
         public static extern void rtmidi_close_port(
             RtMidiHandle device
         );
+
+        [DllImport(DllName)]
+        public static extern void rtmidi_close_port(
+            IntPtr device
+        );
+
+        public static unsafe void SafeClosePort(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            try
+            {
+                rtmidi_close_port(handle);
+            }
+            finally
+            {
+                MarkClosed(handle);
+            }
+        }
+
+        public static void SafeClosePort(RtMidiHandle device)
+        {
+            if (device == null || device.IsInvalid)
+            {
+                return;
+            }
+
+            SafeClosePort(device.DangerousGetHandle());
+        }
+
+        internal static unsafe void MarkClosed(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var wrapper = (RtMidiHandle.RtMidiWrapper*)handle;
+            if (wrapper->ptr == IntPtr.Zero)
+            {
+                return;
+            }
+
+            var rtMidi = (byte*)wrapper->ptr;
+            var rtapi = *(byte**)(rtMidi + IntPtr.Size);
+            if (rtapi != null)
+            {
+                int connectedOffset = IntPtr.Size == 8 ? 0x10 : 0x08;
+                *(rtapi + connectedOffset) = 0;
+            }
+        }
 
         [DllImport(DllName)]
         public static extern uint rtmidi_get_port_count(
